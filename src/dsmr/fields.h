@@ -176,13 +176,19 @@ const uint8_t WATER_MBUS_ID = 2;
 const uint8_t THERMAL_MBUS_ID = 3;
 const uint8_t SLAVE_MBUS_ID = 4;
 
+template <typename FieldT>
+struct NameConverter {
+  public:
+    operator const __FlashStringHelper*() const { return reinterpret_cast<const __FlashStringHelper*>(&FieldT::name_progmem); }
+};
+  
 #define DEFINE_FIELD(fieldname, value_t, obis, field_t, field_args...) \
   struct fieldname : field_t<fieldname, ##field_args> { \
     value_t fieldname; \
     bool fieldname ## _present = false; \
     static constexpr ObisId id = obis; \
     static constexpr char name_progmem[] DSMR_PROGMEM = #fieldname; \
-    static constexpr const __FlashStringHelper *name = reinterpret_cast<const __FlashStringHelper*>(&name_progmem); \
+    static constexpr NameConverter<dsmr::fields::fieldname> name = {}; \
     value_t& val() { return fieldname; } \
     bool& present() { return fieldname ## _present; } \
   }
